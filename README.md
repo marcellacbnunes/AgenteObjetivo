@@ -1,2 +1,0 @@
-# AgenteObjetivo
-AgenteObjetivo IA
