@@ -1,0 +1,218 @@
+from IPython.utils.process import system
+#Author: Cristian Machota, Érico Kreusch, Marcella C B Nunes
+
+import matplotlib.pyplot as plt
+import numpy as np
+import random
+from pyparsing.helpers import PositionToken
+
+# Método de Exibição
+def exibir(I):    
+    global i
+    global j
+    
+    
+    # Altera o esquema de cores do ambiente
+    plt.imshow(I, 'gray')
+    plt.nipy_spectral() 
+    
+    # Coloca o agente no ambiente
+    plt.plot([j],[i], marker='o', color='y', ls='')
+    plt.plot([m],[l], marker='o', color='r', ls='')
+    
+    plt.show(block=False)
+    plt.pause(0.1)  
+    plt.clf()
+ 
+    return ""
+
+global matriz
+matriz =([2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2],
+         [2,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1,1,1,1,1,1,1,1,1,1,2],
+         [2,1,2,2,2,2,1,2,2,2,2,2,1,2,2,1,2,2,2,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,1,1,1,1,1,1,1,1,1,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,2,1,2],
+         [2,1,2,2,2,2,1,2,2,1,2,2,2,2,2,2,2,2,1,2,2,1,2,2,2,2,1,2],
+         [2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2],
+         [2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2])
+
+# Métodos Acessórios
+def calculaDistanciaObjetivo(no, objetivo):
+    calculo_x = abs(no[1] - objetivo[1])
+    calculo_y = abs(no[0] - objetivo[0])
+
+    return calculo_x + calculo_y
+
+def ehParede(no):
+    matriz_lista = list(matriz)
+    if  matriz_lista[no[0]][no[1]] == 2:
+        return True
+    else:
+        return False
+
+def expandeVizinhos(noAtual, lista):
+    coordenadas = [noAtual[0] + 1, noAtual[1]]
+    if  ehParede(coordenadas) == False:
+        lista.append(coordenadas)
+
+    coordenadas = [noAtual[0] - 1, noAtual[1]]
+    if  ehParede(coordenadas) == False:
+        lista.append(coordenadas)
+
+    coordenadas = [noAtual[0], noAtual[1] + 1]
+    if  ehParede(coordenadas) == False:
+        lista.append(coordenadas)
+
+    coordenadas = [noAtual[0], noAtual[1] - 1]
+    if  ehParede(coordenadas) == False:
+        lista.append(coordenadas)
+        
+
+def traduzAcao(noAnterior, noAtual):
+    acaoTraduzida = ''
+
+    if  noAtual[0] > noAnterior[0]:
+        acaoTraduzida = 'Abaixo'
+    elif noAtual[0] < noAnterior[0]:
+        acaoTraduzida = 'Acima'
+    elif noAtual[1] > noAnterior[1]:
+        acaoTraduzida = 'Direita'
+    elif noAtual[1] < noAnterior[1]:
+        acaoTraduzida = 'Esquerda'
+
+    return acaoTraduzida
+
+def noEstaSujo(no):
+    matriz_lista = list(matriz)
+    if  matriz_lista[no[0]][no[1]] == 1:
+        return True
+    else:
+        return False
+
+
+def calculaAcao(noInicial, objetivo):
+    if  noEstaSujo(noInicial) == True:
+        return 'Aspirar'
+
+    vizinhos = []
+
+    verticeAtual = noInicial
+    expandeVizinhos(verticeAtual, vizinhos)
+    
+    for v in vizinhos:
+        if  calculaDistanciaObjetivo(v, objetivo) < calculaDistanciaObjetivo(verticeAtual, objetivo):
+            verticeAtual = v
+
+    return traduzAcao(noInicial, verticeAtual)
+
+def calculaNoSujoMaisProximo(noAtual):
+    fila = [noAtual]
+    while fila:
+        vertice = fila.pop(0)
+        expandeVizinhos(vertice, fila)
+        if  noEstaSujo(vertice) == True:
+            break
+    
+    return vertice
+
+
+# Métodos Principais
+def checkObj(sala):
+    for i in range(1, len(sala) -1):
+        for j in range(1, len(sala[i]) -1):
+            if  sala[i][j] == 1:
+                # Ainda há sujeira
+                return 1
+    return 0
+
+def checkObj2(sala):
+    for l in range(1, len(sala) -1):
+        for m in range(1, len(sala[l]) -1):
+            if  sala[l][m] == 1:
+                # Ainda há sujeira
+                return 1
+    return 0
+
+def agenteObj(percepcao, objObtido):
+    if  objObtido == 0:
+        return 'NoOp'
+    else:
+        noSujo = calculaNoSujoMaisProximo(percepcao)
+        return calculaAcao(percepcao, noSujo)
+    
+def agenteObj2(percepcao, objObtido):
+    if  objObtido == 0:
+        return 'NoOp'
+    else:
+        noSujo = calculaNoSujoMaisProximo(percepcao)
+        return calculaAcao(percepcao, noSujo)
+   
+    
+
+# EXECUÇÃO
+i, j = 1, 1
+l, m = 7, 26
+custo = 0
+exibir(matriz)
+
+while True:
+    percepcao = [i, j]
+    acao = agenteObj(percepcao, checkObj(matriz))
+    print('Estado da percepcao:', checkObj(matriz), 'Acao escolhida:', acao)
+    
+    if  acao == 'Acima':
+        i -= 1
+        custo += 1
+    elif acao == 'Abaixo':
+        custo += 1
+        i += 1
+    elif acao == 'Esquerda':
+        custo += 1
+        j -= 1
+    elif acao == 'Direita':
+        custo += 1
+        j += 1
+    elif acao == 'Aspirar':
+        custo += 1
+        matriz_lista = list(matriz)
+        matriz_lista[i][j] = 0
+        matriz = tuple(matriz_lista)
+    elif acao == 'NoOp':
+        break
+    percepcao2 = [l, m]
+    acao2 = agenteObj2(percepcao2, checkObj2(matriz))
+    print('Estado da percepcao:', checkObj2(matriz), 'Acao escolhida:', acao2)
+    
+    if  acao2 == 'Acima':
+        l -= 1
+        custo += 1
+    elif acao2 == 'Abaixo':
+        custo += 1
+        l += 1
+    elif acao2 == 'Esquerda':
+        custo += 1
+        m -= 1
+    elif acao2 == 'Direita':
+        custo += 1
+        m += 1
+    elif acao2 == 'Aspirar':
+        custo += 1
+        matriz_lista2 = list(matriz)
+        matriz_lista2[l][m] = 0
+        matriz = tuple(matriz_lista2)
+    elif acao == 'NoOp':
+        break
+    print(exibir(matriz))
+    
+def ganhador():
+    if percepcao == 'NoOp':
+        return 'Percepcao1 ganhou'
+    elif percepcao2 == 'NoOp':
+         return 'Percepcao2 ganhou'
+    
+    return 'empate'
+
+print('Pontos -> ', custo, ganhador())
