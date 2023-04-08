@@ -1,1 +1,1 @@
-# Trabalhos de Inteligencia Artifical em Pyhon
+# Trabalhos de Inteligencia Artifical em Python
