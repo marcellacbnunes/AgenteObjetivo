@@ -1,0 +1,131 @@
+#Nomes: Cristian, Érico, Marcella, Matheus, Mattedi
+
+matriz = []
+for i in range(20):
+    lista = []
+    for j in range(20):
+        numRandom = np.random.randint(0,20)
+        while numRandom in lista:
+            numRandom = np.random.randint(0,20)
+        lista.append(numRandom)
+    
+    matriz.append(lista)
+
+from ast import Index
+
+def dist():
+    contadorCidades = 1
+    for lista in matriz:
+        distancia = 0
+        
+        for i in range(19):
+            x1 = data[0][lista[i]]
+            y1 = data[1][lista[i]]
+            x2 = data[0][lista[i + 1]]
+            y2 = data[1][lista[i + 1]]
+            distancia += np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
+
+        distancia += np.sqrt((data[0][lista[0]] - data[0][lista[19]])**2 + (data[1][lista[0]] - data[1][lista[19]])**2) 
+        distanciaCidades[distancia] = contadorCidades
+        contadorCidades += 1   
+
+def ordenador():
+    for i in sorted(distanciaCidades):
+        distanciaCidadesOrdenado[i] = distanciaCidades[i]
+
+def excluiPiores():
+    contadorDistancias = 0
+    for key, value in distanciaCidadesOrdenado.items():
+        if(contadorDistancias > 9):
+            matriz[value - 1] = None
+
+        contadorDistancias += 1
+
+    while None in matriz:
+        matriz.pop(matriz.index(None))
+
+    while(len(matriz) > 10):
+        matriz.pop(10)
+
+
+def roletaMutacao():
+    roleta = [1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,5,5,5,5,5,5,6,6,6,6,6,7,7,7,7,8,8,8,9,9,10]
+    random1 = np.random.randint(0,55)
+    random2 = np.random.randint(0,55)
+
+    pai1 = matriz[roleta[random1] - 1]
+    pai2 = matriz[roleta[random2] - 1]
+
+    filho1 = pai1.copy()
+    filho2 = pai2.copy()
+
+    random3 = np.random.randint(0, 20)
+
+    tempFilho1      = filho1[random3]
+    filho1[random3] = filho2[random3]
+    filho2[random3] = tempFilho1
+
+    
+    pos = random3
+    i = -1
+    iAnterior = -1
+    while(True):
+        i += 1
+        if(i > 19):
+            break
+        #pega a quantidade de iguais ao filho 1 na posição i
+        count = filho1.count(filho1[i])
+        
+        if(count > 1 and i != iAnterior):
+            tempFilho1  = filho1[i]
+            filho1[i] = filho2[i]
+            filho2[i] = tempFilho1
+            pos = filho1.index(filho1[i])
+            iAnterior = i
+            i = -1
+
+    #vamos fazer a mutacao agora
+    random1 = np.random.randint(0, 20)
+    random2 = np.random.randint(0, 20)
+    n = filho1[random1]
+    filho1[random1] = filho1[random2] 
+    filho1[random2] = n 
+
+    random1 = np.random.randint(0, 20)
+    random2 = np.random.randint(0, 20)
+
+    n = filho2[random1]
+    filho2[random1] = filho2[random2] 
+    filho2[random2] = n 
+
+    #joga na matriz
+    matriz.append(filho1)
+    matriz.append(filho2)
+
+distanciaCidades = {}
+distanciaCidadesOrdenado = {}
+novaKey = 0
+for i in range(30000):   
+    distanciaCidades = {}
+    dist()
+    distanciaCidadesOrdenado = {}
+    ordenador()
+    excluiPiores()
+    for i in range(5):
+        roletaMutacao()
+
+    contadorDistancias = 0
+     
+    for key, value in distanciaCidadesOrdenado.items():
+        if (contadorDistancias == 0):
+            print('dist', key)
+            novaKey = key
+        contadorDistancias += 1
+
+contadorDistancias = 0
+print('\n*****************\n')
+for lista in matriz:
+    if(contadorDistancias == 0):
+        print('Resultado Final: ', lista, ' com a distancia: ', novaKey)
+    contadorDistancias += 1
+
